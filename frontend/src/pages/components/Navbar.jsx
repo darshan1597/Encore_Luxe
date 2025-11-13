@@ -139,7 +139,7 @@ function Navbar({ isFixed = true }) {
                 <div>
                     <ul className='hidden xl:flex gap-5 items-center font-semibold'>
                         <button className={`cursor-pointer p-2 px-3 rounded-2xl hover:bg-black hover:text-white`} onClick={()=>navigate("/")}>Home</button>
-                        <li className={`cursor-pointer p-2 px-3 rounded-2xl hover:bg-black hover:text-white`}>About</li>
+                        <li className={`cursor-pointer p-2 px-3 rounded-2xl hover:bg-black hover:text-white`} onClick={() => navigate("/about-us")}>About</li>
                         <li className="relative group p-2 px-3 cursor-pointer rounded-2xl hover:underline transition-all duration-300">
                             Designers
                             <div className="fixed left-0 top-[75px] hidden group-hover:flex w-screen h-full bg-white text-black shadow-lg p-12 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 z-10" >
@@ -279,8 +279,8 @@ function Navbar({ isFixed = true }) {
                     {/* Main Menu */}
                     {currentMenu === "main" && (
                         <ul className="flex flex-col gap-4 w-full ml-5 text-xl">
-                            <li className="hover:bg-black hover:text-white py-2 cursor-pointer border-b mr-15">Home</li>
-                            <li className="hover:bg-black hover:text-white py-2 cursor-pointer border-b mr-15">About</li>
+                            <li className="hover:bg-black hover:text-white py-2 cursor-pointer border-b mr-15" onClick={() => navigate("/")}>Home</li>
+                            <li className="hover:bg-black hover:text-white py-2 cursor-pointer border-b mr-15" onClick={() => navigate("/about-us")}>About</li>
                             <li className="hover:bg-black hover:text-white py-2 cursor-pointer flex justify-between border-b mr-15" onClick={() => setCurrentMenu("designers")}>
                                 <span>Designers</span>
                                 <span><MdOutlineKeyboardArrowRight className='text-2xl'/></span>
