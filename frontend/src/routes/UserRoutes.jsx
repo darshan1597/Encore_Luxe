@@ -21,6 +21,9 @@ import PrivacyPolicy from '../pages/PrivacyPolicy'
 import ReturnRefundPolicy from '../pages/ReturnRefundPolicy'
 import ShippingPolicy from '../pages/ShippingPolicy'
 import AboutUs from '../pages/AboutUs'
+import HowItWorks from '../pages/HowItWorks'
+import ScrollToHash from '../pages/components/ScrollToHash'
+import TrackOrder from '../pages/TrackOrder'
 
 function UserRoutes() {
     useGetCurrentUser()
@@ -28,6 +31,7 @@ function UserRoutes() {
     return (
         <>
             <ScrollToTop />
+            <ScrollToHash />
             <Routes>
                 <Route path='/' element={<Home/>} />
                 <Route path='/products' element={<Products/>} />
@@ -36,17 +40,19 @@ function UserRoutes() {
                 <Route path='/cart' element={<CartPage/>} />
                 <Route path='/my-orders' element={<MyOrders/>} />
                 <Route path='/wishlist' element={<Wishlist/>} />
-                {/* <Route path='/sell-with-us' element={<SellWithUs/>} /> */}
+                <Route path='/sell-with-us' element={<SellWithUs/>} />
                 <Route path='/terms-and-condition' element={<TermsAndConditions/>} />
                 <Route path='/privacy-policy' element={<PrivacyPolicy/>} />
                 <Route path='/returns-and-refund' element={<ReturnRefundPolicy/>} />
                 <Route path='/shipping-policy' element={<ShippingPolicy/>} />
                 <Route path='/about-us' element={<AboutUs/>} />
+                <Route path='/how-it-works' element={<HowItWorks/>} />
                 {/* User */}
                 <Route path='/signin' element={!userData? <SignIn/>: <Navigate to={"/"} replace />}/>
                 <Route path='/signup' element={!userData? <SignUp/>: <Navigate to={"/"} replace />}/>
                 <Route path='/forgot-password' element={!userData? <ForgotPassword/>: <Navigate to={"/"} replace />}/>
                 <Route path='/profile' element={userData ? <Profile /> : <Navigate to="/signin" replace />} />
+                <Route path="/track-order" element={<TrackOrder />} />
             </Routes>
             <WhatsAppButton />
         </>

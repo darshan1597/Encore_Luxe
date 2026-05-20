@@ -10,7 +10,6 @@ import { MdKeyboardBackspace } from "react-icons/md";
 
 function ManageCategories() {
     const [categories, setCategories] = useState([]);
-    const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate()
 
     const fetchCategories = async () => {
@@ -26,12 +25,8 @@ function ManageCategories() {
         fetchCategories();
     }, []);
 
-    useEffect(() => {
-        setTimeout(() => setLoaded(true), 150);
-    }, []);
-
     return (
-        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${ loaded ? "opacity-100" : "opacity-0" }`} >
+        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white`} >
             <section className="relative flex flex-col justify-between z-10">
                 <AdminNavbar />
             </section>

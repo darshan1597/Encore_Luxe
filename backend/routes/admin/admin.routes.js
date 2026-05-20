@@ -1,6 +1,6 @@
 import express from "express"
 import isAuth from "../../middlewares/admin/isAuth.js"
-import { addCategory, addDesigner, addProduct, deleteCategory, deleteDesigner, deleteImage, deleteProduct, editCategory, getCurrentAdmin, getSingleOrder, getSingleProduct, getSingleUserOrder, setPrimaryImage, updateOrderStatus, updateProduct, uploadSellerAgreementPdf } from "../../controllers/admin/admin.controller.js"
+import { addCategory, addDesigner, addProduct, changeAdminPassword, deleteAdmin, deleteCategory, deleteDesigner, deleteImage, deleteProduct, editCategory, getAdminProfile, getAllAdmins, getCurrentAdmin, getSingleOrder, getSingleProduct, getSingleUserOrder, setPrimaryImage, updateGuestOrderStatus, updateGuestPaymentStatus, updateProduct, updateUserOrderStatus, updateUserPaymentStatus, uploadSellerAgreementPdf } from "../../controllers/admin/admin.controller.js"
 import { uploadAgreementFiles, uploadProductImages } from "../../middlewares/multer.js"
 
 const adminRouter = express.Router()
@@ -11,6 +11,10 @@ const guestOrderRouter = express.Router()
 const userOrderRouter = express.Router()
 
 adminRouter.get("/current-admin", isAuth, getCurrentAdmin)
+adminRouter.get("/all-admins", getAllAdmins);
+adminRouter.delete("/delete-admin/:id", deleteAdmin);
+adminRouter.get("/profile/:id", getAdminProfile);
+adminRouter.put("/change-password/:id", changeAdminPassword);
 
 categoryRouter.post("/add-category", addCategory)
 categoryRouter.put("/edit-category/:id", editCategory)
@@ -28,9 +32,11 @@ productRouter.delete("/delete-image/:id", deleteImage)
 productRouter.delete("/delete-product/:id", deleteProduct);
 
 guestOrderRouter.get("/fetch-order/:id", getSingleOrder)
-guestOrderRouter.put("/update-status/:id", updateOrderStatus)
-
+guestOrderRouter.put("/update-status/:id", updateGuestOrderStatus)
+guestOrderRouter.put("/update-payment-status/:id", updateGuestPaymentStatus)
 
 userOrderRouter.get("/fetch-user-order/:id", getSingleUserOrder)
+userOrderRouter.put("/update-status/:id", updateUserOrderStatus)
+userOrderRouter.put("/update-payment-status/:id", updateUserPaymentStatus)
 
 export {adminRouter, categoryRouter, designerRouter, productRouter, guestOrderRouter, userOrderRouter}

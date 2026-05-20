@@ -80,6 +80,13 @@ export const createOrder = async (req, res) => {
                 updatedOrder.shiprocket_order_id = shiprocketRes.order_id;
                 updatedOrder.shiprocket_shipment_id = shiprocketRes.shipment_id;
                 updatedOrder.shiprocket_status = shiprocketRes.status || "created";
+                
+                const awbRes = await generateAWB(shiprocketRes.shipment_id);
+                const awb = awbRes?.response?.data?.awb_code;
+            
+                updatedOrder.tracking_url = `https://shiprocket.co/tracking/${awb}`;
+            
+                updatedOrder.shiprocket_awb = awb;
                 await updatedOrder.save();
             } catch (error) {
                 updatedOrder.shiprocket_status = "pending";
@@ -201,6 +208,13 @@ export const verifyPayment = async (req, res) => {
                 order.shiprocket_order_id = shiprocketRes.order_id;
                 order.shiprocket_shipment_id = shiprocketRes.shipment_id;
                 order.shiprocket_status = shiprocketRes.status || "created";
+                
+                const awbRes = await generateAWB(shiprocketRes.shipment_id);
+                const awb = awbRes?.response?.data?.awb_code;
+            
+                order.tracking_url = `https://shiprocket.co/tracking/${awb}`;
+            
+                order.shiprocket_awb = awb;
                 await order.save();
             } catch (error) {
                 order.shiprocket_status = "pending";

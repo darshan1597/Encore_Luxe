@@ -4,6 +4,8 @@ import { serverUrl } from "../../App";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
+import { ClipLoader } from "react-spinners";
+import Toast from "../components/Toast";
 
 function AddProduct() {
     const [categories, setCategories] = useState([]);
@@ -14,7 +16,8 @@ function AddProduct() {
     const [preview, setPreview] = useState([]);
     const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate();
-    const [popup, setPopup] = useState({ show: false, message: "", type: "" });
+    const [loading, setLoading] = useState(false)
+    const [toast, setToast] = useState(null);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -81,12 +84,6 @@ function AddProduct() {
         }
     };
 
-    // Show popup helper
-    const showPopup = (message, type = "error") => {
-        setPopup({ show: true, message, type });
-        setTimeout(() => setPopup({ show: false, message: "", type: "" }), 3000);
-    };
-
     // Handle multiple image uploads with duplicate prevention
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
@@ -108,11 +105,11 @@ function AddProduct() {
         });
 
         if (duplicateFound) {
-            showPopup("Some images were duplicates and not added.");
+            setToast({ message: "Some images were duplicates and not added.", type: "error" });
         }
 
         if (newFiles.length > 10) {
-            showPopup("You can upload a maximum of 10 images only.");
+            setToast({ message: "You can upload a maximum of 10 images only.", type: "error" });
             return;
         }
 
@@ -147,22 +144,26 @@ function AddProduct() {
 
         for (const field of requiredFields) {
             if (!formData[field]) {
-                showPopup(`Please fill in the ${field} field.`);
+                setToast({ message: `Please fill in the ${field} field.`, type: "error" });
+                setLoading(false)
                 return false;
             }
         }
 
-        if (images.length < 5 || images.length > 10) {
-            showPopup("Please upload between 5 and 10 images.");
+        if (images.length < 3 || images.length > 10) {
+            setToast({ message: `Please upload 3 to 10 images.`, type: "error" });
+            setLoading(false)
             return false;
         }
 
+        setLoading(false)
         return true;
     };
 
     // Submit product
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true)
 
         if (!validateForm()) return;
 
@@ -175,7 +176,7 @@ function AddProduct() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            showPopup("Product added successfully!", "success");
+            setToast({ message: "Product added successfully!", type: "success" });
 
             setFormData({
                 name: "",
@@ -199,9 +200,11 @@ function AddProduct() {
             setPreview([]);
             setHierarchies([]);
             setSubcategories([]);
+            setLoading(false)
         } catch (error) {
             console.log(error)
-            showPopup("Failed to add product. Please try again.");
+            setLoading(false)
+            setToast({ message: "Failed to add product. Please try again.", type: "error" });
         }
     };
 
@@ -211,12 +214,6 @@ function AddProduct() {
                 <AdminNavbar />
             </section>
             <div className="relative max-w-4xl mx-auto bg-white shadow-2xl p-6 rounded-lg mt-48 mb-20">
-                {/* Popup Alert */}
-                {popup.show && (
-                    <div className={`fixed top-5 right-5 px-5 py-3 rounded-md shadow-lg text-white font-medium z-50 transition-all duration-300 ${ popup.type === "error" ? "bg-red-500" : "bg-green-500" }`} >
-                        {popup.message}
-                    </div>
-                )}
 
                 <div className='flex gap-4 items-center mb-10'>
                     <MdKeyboardBackspace className='text-2xl cursor-pointer mt-1' onClick={()=>navigate("/admin/admin-panel")} />
@@ -286,7 +283,7 @@ function AddProduct() {
                     <div className="mt-4">
                         <select name="condition" value={formData.condition} onChange={(e) => setFormData({ ...formData, condition: e.target.value }) } className="border p-2 rounded-md w-full" >
                             <option value="">Select Condition</option>
-                            {["Excellent", "Very Good", "Good"].map((cond) => (
+                            {["Excellent", "Very Good", "Good", "New"].map((cond) => (
                                 <option name="condition" value={cond}>
                                     {cond}
                                 </option>
@@ -299,7 +296,7 @@ function AddProduct() {
 
                     {/* Image upload */}
                     <div className="mt-4 mb-4">
-                        <label className="block mb-2 font-semibold">Upload Images (5–10)</label>
+                        <label className="block mb-2 font-semibold">Upload Images (3–10)</label>
                         <input type="file" multiple accept="image/*" onChange={handleImageChange} className="border border-gray-300 rounded-lg p-2 w-full cursor-pointer" />
 
                         {preview.length > 0 && (
@@ -339,11 +336,18 @@ function AddProduct() {
                         </label>
                     </div>
 
-                    <button type="submit" className="mt-5 bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700 transition cursor-pointer" >
-                        Add Product
+                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition cursor-pointer mt-8" >
+                        {loading? <ClipLoader size={20} color='currentColor'/>: "Add Product"}
                     </button>
                 </form>
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

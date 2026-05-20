@@ -119,7 +119,7 @@ const CartPage = () => {
                             ):(
                                 cartItems.map((item) => (
                                 <div key={item._id} className="flex flex-col sm:flex-row border-b pb-6 mb-6">
-                                    <img src={`${serverUrl}/productImages/${item.image}`} alt={item?.name} className="w-40 h-56 object-cover rounded-lg" />
+                                    <img src={`${serverUrl}/productImages/${item.image}`} alt={item?.name} className="w-40 h-56 object-cover rounded-lg cursor-pointer" onClick={() => navigate(`/product/${item?.productId?._id}`)} />
                                     <div className="sm:ml-6 mt-4 sm:mt-0">
                                         <h2 className="text-xl font-semibold mb-2 line-clamp-2 capitalize">{item?.name}</h2>
                                         {item?.discountedPrice != 0 &&
@@ -140,38 +140,50 @@ const CartPage = () => {
 
                         {/* Right - Order Summary */}
                         <div className="w-full lg:w-1/3 border rounded-lg p-6 shadow-md h-fit">
-                            <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
-                            <div className="flex justify-between mb-2">
-                                <span>Subtotal</span>
-                                <span>₹{loading? <ClipLoader size={12} color='currentColor'/>: <>{subtotal.toLocaleString()}</>}</span>
-                            </div>
-                            <div className="flex justify-between mb-2">
-                                <span>Shipping & Handling</span>
-                                <span className="text-green-600 font-medium">Free</span>
-                            </div>
-                            <div className="border-t mt-3 pt-3 flex justify-between font-semibold text-lg">
-                                <span>Estimated total</span>
-                                <span>₹{loading? <ClipLoader size={12} color='currentColor'/>: <>{subtotal.toLocaleString()}</>}</span>
-                            </div>
-                            <button className="mt-8 w-full bg-black text-white py-3 rounded-md font-medium hover:bg-white hover:border hover:border-black hover:text-black transition cursor-pointer border" onClick={handleCheckout}>
-                                {loading? <ClipLoader size={18} color='currentColor'/>: "PROCEED TO  CHECKOUT" }
-                            </button>
-                            <p className="text-xs text-center mt-3 text-gray-600">
-                                By clicking on checkout you are agreeing to our{" "}
-                                <a href="#" className="text-blue-600 underline">
-                                    Return Policy
-                                </a>.
-                            </p>
-                            <div className="flex flex-col gap-2 mt-3">
-                                <p className="text-xl text-black font-medium">We Accept</p>
-                                <div className="flex gap-3 text-3xl text-gray-700 justify-center">
-                                    <img src={upiIcon} alt="UPI" className="h-6 w-10 mt-1" />
-                                    <img src={visaIcon} alt="Visa" className="h-8 w-10" />
-                                    <img src={mastercardIcon} alt="Mastercard" className="h-9 w-10" />
-                                    <p className="text-sm h-6 w-14 font-bold">Cash On Delivery</p>
-                                    <span className="text-gray-500 text-sm h-6 w-10 font-semibold mt-2">+18</span>
-                                </div>
-                            </div>
+                            {cartItems.length === 0 ? 
+                                (
+                                    <div className="flex items-center justify-center">
+                                        <button className="text-center text-white px-2 py-2 rounded-lg cursor-pointer bg-gray-700" onClick={() => navigate(`/#explore`)}>
+                                            Continue Shopping
+                                        </button>
+                                    </div>
+                                ):(
+                                    <>
+                                        <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
+                                        <div className="flex justify-between mb-2">
+                                            <span>Subtotal</span>
+                                            <span>₹{loading? <ClipLoader size={12} color='currentColor'/>: <>{subtotal.toLocaleString()}</>}</span>
+                                        </div>
+                                        <div className="flex justify-between mb-2">
+                                            <span>Shipping & Handling</span>
+                                            <span className="text-green-600 font-medium">Free</span>
+                                        </div>
+                                        <div className="border-t mt-3 pt-3 flex justify-between font-semibold text-lg">
+                                            <span>Estimated total</span>
+                                            <span>₹{loading? <ClipLoader size={12} color='currentColor'/>: <>{subtotal.toLocaleString()}</>}</span>
+                                        </div>
+                                        <button className="mt-8 w-full bg-black text-white py-3 rounded-md font-medium hover:bg-white hover:border hover:border-black hover:text-black transition cursor-pointer border" onClick={handleCheckout}>
+                                            {loading? <ClipLoader size={18} color='currentColor'/>: "PROCEED TO  CHECKOUT" }
+                                        </button>
+                                        <p className="text-xs text-center mt-3 text-gray-600">
+                                            By clicking on checkout you are agreeing to our{" "}
+                                            <a href="#" className="text-blue-600 underline">
+                                                Return Policy
+                                            </a>.
+                                        </p>
+                                        <div className="flex flex-col gap-2 mt-3">
+                                            <p className="text-xl text-black font-medium">We Accept</p>
+                                            <div className="flex gap-3 text-3xl text-gray-700 justify-center">
+                                                <img src={upiIcon} alt="UPI" className="h-6 w-10 mt-1" />
+                                                <img src={visaIcon} alt="Visa" className="h-8 w-10" />
+                                                <img src={mastercardIcon} alt="Mastercard" className="h-9 w-10" />
+                                                <p className="text-sm h-6 w-14 font-bold">Cash On Delivery</p>
+                                                <span className="text-gray-500 text-sm h-6 w-10 font-semibold mt-2">+18</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )
+                            } 
                         </div>
                     </div>
                 </>

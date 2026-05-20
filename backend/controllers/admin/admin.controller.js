@@ -10,6 +10,8 @@ import Seller from "../../models/seller.model.js";
 import SellerProductImage from "../../models/sellerProductImage.model.js";
 import crypto from "crypto";
 import Order from "../../models/order.model.js";
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 export const getCurrentAdmin = async (req, res) => {
     try {
@@ -113,7 +115,7 @@ export const addProduct = async (req, res) => {
         }));
 
         const uniqueCode = "ENCLX-" + crypto.randomBytes(3).toString("hex").toUpperCase();
-        
+
         const newProduct = new Product({
             ...req.body,
             images,
@@ -286,17 +288,87 @@ export const getSingleUserOrder = async (req, res) => {
     }
 };
 
-export const updateOrderStatus = async (req, res) => {
+export const updateUserOrderStatus = async (req, res) => {
     try {
-        const { orderStatus } = req.body;
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { orderStatus },
-            { new: true }
-        );
+        const { id } = req.params;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const orderStatus = req.body;
+        const order = await Order.findByIdAndUpdate(req.params.id, orderStatus, { new: true });
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
         return res.status(200).json({ order });
     } catch (error) {
         return res.status(500).json({ message: `Error updating order status: ${error}` });
+    }
+};
+
+export const updateUserPaymentStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const paymentStatus = req.body;
+        const order = await Order.findByIdAndUpdate(id, paymentStatus, { new: true });
+        
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        return res.status(200).json({ order });
+    } catch (error) {
+        return res.status(500).json({ message: `Error updating payment status: ${error}` });
+    }
+};
+
+export const updateGuestOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const orderStatus = req.body;
+        const order = await GuestOrder.findByIdAndUpdate(id, orderStatus, { new: true });
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        return res.status(200).json({ order });
+    } catch (error) {
+        return res.status(500).json({ message: `Error updating order status: ${error}` });
+    }
+};
+
+export const updateGuestPaymentStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const paymentStatus = req.body;
+        const order = await GuestOrder.findByIdAndUpdate(req.params.id, paymentStatus, { new: true });
+        
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        return res.status(200).json({ order });
+    } catch (error) {
+        return res.status(500).json({ message: `Error updating payment status: ${error}` });
     }
 };
 
@@ -409,5 +481,86 @@ export const uploadSellerAgreementPdf = async (req, res) => {
     } catch (error) {
         console.error("Error uploading agreement:", error);
         res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+export const getAllAdmins = async (req, res) => {
+    try {
+        const admins = await Admin.find().select("-password");
+
+        return res.status(200).json({ admins });
+    } catch (error) {
+        console.log("Get Admins Error:", error);
+        return res.status(500).json({ message: "Server Error" });
+    }
+};
+
+export const deleteAdmin = async (req, res) => {
+    try {
+        const adminId = req.params.id;
+
+        if (req.adminId === adminId) {
+            return res.status(400).json({ message: "You cannot delete your own admin account" });
+        }
+
+        const adminData = await Admin.findById(adminId);
+        if (!adminData) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        if (adminData.role === "superAdmin") {
+            return res.status(403).json({ message: "You cannot delete the super admin" });
+        }
+
+        await Admin.findByIdAndDelete(adminId);
+
+        return res.status(200).json({ message: "Admin deleted successfully" });
+    } catch (error) {
+        console.log("Delete Admin Error:", error);
+        return res.status(500).json({ message: "Server Error" });
+    }
+};
+
+export const getAdminProfile = async (req, res) => {
+    try {
+        const adminId = req.params.id;
+
+        const admin = await Admin.findById(adminId).select("-password");
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        res.status(200).json({ admin });
+    } catch (error) {
+        console.log("Profile Error:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+export const changeAdminPassword = async (req, res) => {
+    try {
+        const adminId = req.params.id;
+        const { oldPassword, newPassword } = req.body;
+
+        const admin = await Admin.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, admin.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Old password is incorrect" });
+        }
+
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS)
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds)
+
+        admin.password = hashedPassword;
+        await admin.save();
+
+        res.status(200).json({ message: "Password changed successfully" });
+    } catch (error) {
+        console.log("Password Change Error:", error);
+        res.status(500).json({ message: "Server Error" });
     }
 };

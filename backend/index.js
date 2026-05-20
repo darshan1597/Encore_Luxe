@@ -19,6 +19,9 @@ import approveSellerProcutrouter from "./routes/admin/approveSeller.routes.js"
 import getDesignerRouter from "./routes/designer.routes.js"
 import { startRefundRetryJob } from "./jobs/retryRefunds.js"
 import agreementRouter from "./routes/agreement.routes.js"
+import discountRouter from "./routes/admin/discount.routes.js"
+import applyDiscountRouter from "./routes/applyDiscount.routes.js"
+import trackOrderRouter from "./routes/trackOrder.routes.js"
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -47,6 +50,7 @@ app.use("/api/products", productRouter)
 app.use("/api/guest-order", guestOrderRouter)
 app.use("/api/user-order", userOrderRouter)
 app.use("/api/admin", approveSellerProcutrouter)
+app.use("/api/discounts", discountRouter)
 
 app.use("/sellerAgreements", express.static("public/sellerAgreements"));
 app.use("/api/agreements", agreementRouter);
@@ -67,6 +71,12 @@ app.use("/productImages", express.static("public/productImages"));
 
 // guest orders
 app.use("/api/guest-orders", guestRouter);
+
+// discount
+app.use("/api/applyDiscount", applyDiscountRouter)
+
+// track
+app.use("/api/track", trackOrderRouter)
 
 startRefundRetryJob();
 

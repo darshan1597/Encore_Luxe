@@ -130,16 +130,23 @@ function CartSlider({ isCartOpen, setIsCartOpen }) {
             </div>
 
             {/* Cart Items */}
-            <div className="p-6 overflow-y-auto space-y-6 z-9999">
+            <div className="p-6 overflow-y-auto space-y-6 z-9999 lg:max-h-[50vh] max-h-[40vh]">
                 {cartItems.length === 0 ? 
                     (
-                        <p className="text-center text-gray-500 mt-20">
-                            Your cart is empty
-                        </p>
+                        <>
+                            <p className="text-center text-gray-500 mt-20">
+                                Your cart is empty
+                            </p>
+                            <div className="flex items-center justify-center">
+                                <button className="text-center text-white px-2 py-2 rounded-lg cursor-pointer bg-gray-700" onClick={() => {navigate(`/#explore`); setIsCartOpen(false)}}>
+                                    Continue Shopping
+                                </button>
+                            </div>
+                        </>
                     ) : (
                         cartItems.map((item) => (
                             <div key={item._id} className="flex gap-4 items-start border-b pb-4">
-                                <img src={`${serverUrl}/productImages/${item.image}`} alt={item.image} className="w-20 h-24 object-cover rounded-md" />
+                                <img src={`${serverUrl}/productImages/${item.image}`} alt={item.image} className="w-20 h-24 object-cover rounded-md cursor-pointer" onClick={() => {navigate(`/product/${item._id}`); setIsCartOpen(false)}} />
                                 <div className="flex-1">
                                     <h3 className="font-medium text-gray-800 leading-tight capitalize">
                                         {item.name}

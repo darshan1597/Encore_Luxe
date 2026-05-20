@@ -39,7 +39,6 @@ export const createGuestOrder = async (req, res) => {
             });
 
             const updatedOrder = await GuestOrder.findById(newOrder._id);
-            await sendOrderConfirmationEmail(updatedOrder.guestInfo.email, updatedOrder);
 
             try {
                 const shiprocketData = {
@@ -75,10 +74,15 @@ export const createGuestOrder = async (req, res) => {
                 updatedOrder.shiprocket_order_id = shiprocketRes.order_id;
                 updatedOrder.shiprocket_shipment_id = shiprocketRes.shipment_id;
                 updatedOrder.shiprocket_status = shiprocketRes.status || "created";
+
                 await updatedOrder.save();
+                
+                await sendOrderConfirmationEmail(updatedOrder.guestInfo.email, updatedOrder);
+
             } catch (error) {
                 updatedOrder.shiprocket_status = "pending";
                 await updatedOrder.save();
+                await sendOrderConfirmationEmail(updatedOrder.guestInfo.email, updatedOrder);
             }
 
             return res.json({ newOrder });
@@ -155,7 +159,6 @@ export const verifyGuestPayment = async (req, res) => {
         if (stockReserved) {
             order.orderStatus = "processing";
             await order.save();
-            await sendOrderConfirmationEmail(order.guestInfo.email, order);
 
             try {
                 const shiprocketData = {
@@ -191,7 +194,10 @@ export const verifyGuestPayment = async (req, res) => {
                 order.shiprocket_order_id = shiprocketRes.order_id;
                 order.shiprocket_shipment_id = shiprocketRes.shipment_id;
                 order.shiprocket_status = shiprocketRes.status || "created";
+
                 await order.save();
+
+                await sendOrderConfirmationEmail(order.guestInfo.email, order);
             } catch (error) {
                 order.shiprocket_status = "pending";
                 await order.save();

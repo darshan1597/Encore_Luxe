@@ -32,3 +32,15 @@ export const createShiprocketOrder = async (orderData) => {
         throw new Error("Failed to create Shiprocket shipment");
     }
 };
+
+export const generateAWB = async (shipment_id) => {
+    const token = await getShiprocketToken();
+
+    const { data } = await axios.post(
+        "https://apiv2.shiprocket.in/v1/external/courier/assign/awb",
+        { shipment_id },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return data;
+};

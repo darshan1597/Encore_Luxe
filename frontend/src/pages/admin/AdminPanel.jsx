@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaBoxOpen, FaClipboardList, FaTags, FaListAlt, FaChartBar, FaTruck } from "react-icons/fa";
+import { FaBoxOpen, FaClipboardList, FaTags, FaListAlt, FaTruck } from "react-icons/fa";
+import { BiSolidEditAlt } from "react-icons/bi";
 import { MdAddBusiness } from "react-icons/md";
 import AdminNavbar from "../components/AdminNavbar";
 import { MdOutlineAddHome } from "react-icons/md";
 import { IoPersonAddSharp } from "react-icons/io5";
+import { useSelector } from "react-redux";
+import { TiDelete } from "react-icons/ti";
 
 function AdminPanel() {
     const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate();
+    const {adminData} = useSelector(state=>state.admin)
+    const role = adminData?.role;
 
     const cards = [
         {
@@ -16,6 +21,14 @@ function AdminPanel() {
             icon: <IoPersonAddSharp size={40} className="text-black-500" />,
             path: "/admin/add-admins",
             color: "hover:bg-gray-200",
+            role: "superAdmin",
+        },
+        {
+            title: "Delete Admin",
+            icon: <TiDelete size={40} className="text-red-500" />,
+            path: "/admin/delete-admins",
+            color: "hover:bg-red-200",
+            role: "superAdmin",
         },
         {
             title: "Manage Categories",
@@ -48,16 +61,28 @@ function AdminPanel() {
             color: "hover:bg-orange-50",
         },
         {
-            title: "View Orders",
+            title: "View Guest Orders",
             icon: <FaTruck size={40} className="text-purple-500" />,
+            path: "/admin/view-guest-orders",
+            color: "hover:bg-purple-50",
+        },
+        {
+            title: "View User Orders",
+            icon: <FaTruck size={40} className="text-green-400" />,
             path: "/admin/view-orders",
             color: "hover:bg-purple-50",
         },
         {
             title: "Add Discount Codes",
-            icon: <FaTags size={40} className="text-pink-500" />,
-            path: "/admin/add-discount",
+            icon: <BiSolidEditAlt size={40} className="text-pink-500" />,
+            path: "/admin/add-discount-codes",
             color: "hover:bg-pink-50",
+        },
+        {
+            title: "View Discount Codes",
+            icon: <FaTags size={40} className="text-yellow-500" />,
+            path: "/admin/view-discount-codes",
+            color: "hover:bg-yellow-50",
         }
     ];
 
@@ -74,7 +99,7 @@ function AdminPanel() {
             {/* Admin dashboard cards */}
             <section className="pb-20 px-10 pt-5 relative bg-white flex flex-col mt-40">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {cards.map((card, index) => (
+                    {cards.filter(card => !card.role || card.role === role).map((card, index) => (
                         <div key={index} onClick={() => navigate(card.path)} className={`cursor-pointer flex flex-col items-center justify-center border border-gray-200 rounded-2xl shadow-md p-8 transition-transform duration-300 hover:-translate-y-2 ${card.color}`} >
                             {card.icon}
                             <h2 className="text-xl font-medium mt-4 text-gray-700">{card.title}</h2>

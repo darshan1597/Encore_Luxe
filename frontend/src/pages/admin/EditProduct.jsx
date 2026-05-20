@@ -5,6 +5,7 @@ import { serverUrl } from "../../App";
 import AdminNavbar from "../components/AdminNavbar";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { ClipLoader } from "react-spinners";
+import Toast from "../components/Toast";
 
 function EditProduct() {
     const { id } = useParams();
@@ -43,6 +44,7 @@ function EditProduct() {
     const [subcategories, setSubcategories] = useState([]);
     const [designers, setDesigners] = useState([]);
     const [loading, setLoading] = useState(false)
+    const [toast, setToast] = useState(null);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -155,13 +157,13 @@ function EditProduct() {
         const validPdfs = files.filter(f => f.type === "application/pdf");
 
         if (validPdfs.length === 0) {
-            alert("Please upload only PDF files");
+            setToast({ message: "Please upload only PDF files", type: "error" })
             return;
         }
 
         const existingCount = formData.agreementFile ? formData.agreementFile.length : 0;
         if (existingCount + validPdfs.length > 3) {
-            alert(`You can upload up to 3 agreements total. Seller already has ${existingCount} file(s).`);
+            setToast({ message: `You can upload up to 3 agreements total. Seller already has ${existingCount} file(s).`, type: "error" })
             return;
         }
 
@@ -189,7 +191,7 @@ function EditProduct() {
             );
         } catch (error) {
             console.error("Error setting primary image:", error);
-            alert("Failed to set primary image");
+            setToast({ message: "Failed to set primary image", type: "error" })
         }
     }
 
@@ -209,7 +211,7 @@ function EditProduct() {
             setLoading(false)
         } catch (error) {
             console.error("Error deleting image:", error);
-            alert("Failed to delete image");
+            setToast({ message: "Failed to delete image", type: "error" })
             setLoading(false)
         }
     }
@@ -341,9 +343,18 @@ function EditProduct() {
                                 ))}
                             </select>
                         </div>
+                        
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-                            <input type="text" name="condition" value={formData.condition} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2" />
+                            {/* changesite */}
+                            <select value={formData.condition} onChange={(e) => setFormData({ ...formData, condition: e.target.value }) } className="border p-2 rounded-md w-full" >
+                                <option value="">Select Condition</option>
+                                {["Excellent", "Very Good", "Good", "New"].map((cond) => (
+                                    <option value={cond}>
+                                        {cond}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -392,7 +403,7 @@ function EditProduct() {
                                         )}
 
                                         {/* Hover Controls */}
-                                        <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                                        <div className="absolute bg-opacity-40 flex flex-col justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                                             {/* Set as Primary Button */}
                                             {!img.isPrimary && (
                                                 <button onClick={() =>handleSetPrimary(img)} className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 cursor-pointer" >
@@ -522,6 +533,13 @@ function EditProduct() {
                     </button>
                 </form>
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

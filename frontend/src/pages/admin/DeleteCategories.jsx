@@ -4,11 +4,11 @@ import { serverUrl } from "../../App";
 import AdminNavbar from "../components/AdminNavbar";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import Toast from "../components/Toast";
 
 function DeleteCategories() {
-    const [loaded, setLoaded] = useState(false);
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState(null);
     const navigate = useNavigate()
 
     const fetchCategories = async () => {
@@ -23,7 +23,6 @@ function DeleteCategories() {
     // Fetch categories on mount
     useEffect(() => {
         fetchCategories()
-        setTimeout(() => setLoaded(true), 150);
     }, []);
 
     // Handle category select
@@ -33,16 +32,16 @@ function DeleteCategories() {
 
         try {
             await axios.delete(`${serverUrl}/api/categories/delete-category/${id}`);
-            alert(`Category "${name}" deleted successfully!`);
+            setToast({ message: `Category "${name}" deleted successfully!`, type: "success" });
             fetchCategories();
         } catch (error) {
             console.error("Error deleting category:", error);
-            alert("Failed to delete category!");
+            setToast({ message: "Failed to delete category!", type: "error" });
         }
     };
 
     return (
-        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${ loaded ? "opacity-100" : "opacity-0" }`} >
+        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white`} >
             <section className="relative flex flex-col justify-between z-10">
                 <AdminNavbar />
             </section>
@@ -95,6 +94,13 @@ function DeleteCategories() {
                     )
                 }
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

@@ -220,8 +220,8 @@ function SellWithUs() {
                 }
             }
 
-            if (!p.uploadedFiles || p.uploadedFiles.length < 5) {
-                showPopup(`Please upload atleast 5 images for Product ${i + 1}`);
+            if (!p.uploadedFiles || p.uploadedFiles.length < 3) {
+                showPopup(`Please upload atleast 3 images for Product ${i + 1}`);
                 return false;
             }
 
@@ -406,7 +406,7 @@ function SellWithUs() {
                         {/* Upload */}
                         <div className="mb-6">
                             <label className="block text-l font-bold mb-2">
-                                Upload Product Images (Min 5, Max 10) <span className="text-red-500">*</span>
+                                Upload Product Images (Min 3, Max 10) <span className="text-red-500">*</span>
                             </label>
 
                             {/* Recommended info */}

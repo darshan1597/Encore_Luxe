@@ -7,11 +7,11 @@ import { getAuth } from "firebase/auth";
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
-    authDomain: "encore-luxe.firebaseapp.com",
-    projectId: "encore-luxe",
-    storageBucket: "encore-luxe.firebasestorage.app",
-    messagingSenderId: "12718744083",
-    appId: "1:12718744083:web:48cebf60c31246a9cad5e6"
+    authDomain: "sakeena-eca79.firebaseapp.com",
+    projectId: "sakeena-eca79",
+    storageBucket: "sakeena-eca79.firebasestorage.app",
+    messagingSenderId: "662513982813",
+    appId: "1:662513982813:web:098c9f24c8de359a4d1cb4"
 };
 
 // Initialize Firebase

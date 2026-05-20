@@ -11,6 +11,7 @@ const ViewOrders = () => {
     const [guestOrders, setGuestOrders] = useState([]);
     const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate()
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         fetchOrders();
@@ -35,7 +36,22 @@ const ViewOrders = () => {
         }
     };
 
-    const ordersToShow = activeTab === "user" ? userOrders : guestOrders;
+    const rawOrders = activeTab === "user" ? userOrders : guestOrders;
+
+    const ordersToShow = rawOrders.filter((order) => {
+        const query = searchQuery.toLowerCase();
+
+        return (
+            order._id?.toLowerCase().includes(query) ||
+            order.paymentMethod?.toLowerCase().includes(query) ||
+            order.paymentStatus?.toLowerCase().includes(query) ||
+            order.orderStatus?.toLowerCase().includes(query) ||
+            order.guestInfo?.name?.toLowerCase().includes(query) ||
+            order.shippingInfo?.name?.toLowerCase().includes(query) ||
+            order.guestInfo?.email?.toLowerCase().includes(query) ||
+            order.shippingInfo?.email?.toLowerCase().includes(query)
+        );
+    });
 
     return (
         <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${ loaded ? "opacity-100" : "opacity-0" }`} >
@@ -58,6 +74,17 @@ const ViewOrders = () => {
                     </button>
                 </div>
 
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search orders..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full max-w-md border border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
+                    />
+                </div>
+
                 {/* Orders Table */}
                 {ordersToShow.length === 0 ? (
                     <p className="text-gray-500">No orders found.</p>
@@ -67,12 +94,13 @@ const ViewOrders = () => {
                             <thead className="bg-gray-200">
                                 <tr>
                                     <th className="p-3 border">Si. No</th>
+                                    <th className="p-3 border">Order Id</th>
                                     <th className="p-3 border">Customer</th>
                                     <th className="p-3 border">Email</th>
                                     <th className="p-3 border">Amount</th>
                                     <th className="p-3 border">Payment</th>
-                                    <th className="p-3 border">Status</th>
-                                    <th className="p-3 border">Date</th>
+                                    <th className="p-3 border">Payment Status</th>
+                                    <th className="p-3 border">Order Status</th>
                                     <th className="p-3 border">Action</th>
                                 </tr>
                             </thead>
@@ -80,6 +108,9 @@ const ViewOrders = () => {
                                 {ordersToShow.map((order, i) => (
                                     <tr key={order._id} className="border-t hover:bg-gray-50">
                                         <td className="p-3 border">{i + 1}</td>
+                                        <td className="p-3 border">
+                                            {order._id}
+                                        </td>
                                         <td className="p-3 border capitalize">
                                             {order.guestInfo?.name || order.shippingInfo?.name}
                                         </td>
@@ -91,8 +122,8 @@ const ViewOrders = () => {
                                         <td className={`p-3 border font-medium ${ order.paymentStatus === "paid" ? "text-green-600" : "text-yellow-600" }`} >
                                             {order.paymentStatus}
                                         </td>
-                                        <td className="p-3 border">
-                                            {new Date(order.createdAt).toLocaleString()}
+                                        <td className="p-3 border capitalize">
+                                            {order.orderStatus}
                                         </td>
                                         <td className="p-3 border">
                                             <button type="button" className="bg-black px-3 py-1 cursor-pointer text-white rounded-lg"  onClick={()=>navigate(`/admin/view-order/${order._id}`)}>View</button>

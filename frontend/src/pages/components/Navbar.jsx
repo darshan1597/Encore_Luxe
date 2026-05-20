@@ -65,10 +65,12 @@ function Navbar({ isFixed = true }) {
         fetchCategories();
     }, []);
 
+    const handleDesignerClick = (designer) => {
+        window.location.href = `/products?designer=${designer}`;
+    };
+
     const handleSubcategoryClick = (category, subcategory) => {
-        const encodedCategory = btoa(category);
-        const encodedSubcategory = btoa(subcategory);
-        navigate(`/products?category=${encodeURIComponent(encodedCategory)}&subcategory=${encodeURIComponent(encodedSubcategory)}`);
+        window.location.href = `/products?category=${category}&subcategory=${subcategory}`;
     };
 
     const positionClass = isFixed ? "fixed" : "";
@@ -114,7 +116,7 @@ function Navbar({ isFixed = true }) {
             console.log(error)
         }
     }
-    
+
     const phoneNumber = "919274717330";
     const message = "Hello! I'd like to know more about your Encore Luxe.";
 
@@ -142,16 +144,15 @@ function Navbar({ isFixed = true }) {
                         <li className={`cursor-pointer p-2 px-3 rounded-2xl hover:bg-black hover:text-white`} onClick={() => navigate("/about-us")}>About</li>
                         <li className="relative group p-2 px-3 cursor-pointer rounded-2xl hover:underline transition-all duration-300">
                             Designers
-                            <div className="fixed left-0 top-[75px] hidden group-hover:flex w-screen h-full bg-white text-black shadow-lg p-12 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 z-10" >
+                            <div className="fixed left-0 top-[75px] hidden group-hover:flex w-screen h-[50%] bg-white text-black shadow-lg p-12 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 z-10" >
                                 <div className="flex w-full justify-between gap-10 max-w-[1400px] mx-auto">
-                                    {/* LEFT IMAGE */}
+                                    
                                     <div className="w-[50%] pl-30">
                                         <img src={red_garbha} alt="Designers" className="w-80 h-full object-cover" />
                                     </div>
 
-                                    {/* RIGHT SIDE CONTENT */}
                                     <div className="w-[50%] flex justify-around pr-50">
-                                        {/* DESIGNERS */}
+                                        
                                         <div>
                                             <h3 className="text-lg font-semibold mb-6 uppercase tracking-widest">
                                                 Indian/ International Designers
@@ -159,9 +160,9 @@ function Navbar({ isFixed = true }) {
 
                                             <input type="text" placeholder="Search designers..." className="mb-4 p-2 pr-30 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
 
-                                            <ul className="space-y-3 text-gray-700 overflow-y-auto h-[500px] pr-2 custom-scrollbar">
+                                            <ul className="space-y-3 text-gray-700 overflow-y-auto h-[200px] pr-2 custom-scrollbar">
                                                 {designers.filter((d) => d.name.toLowerCase().includes(searchTerm.toLowerCase())).map((d) => (
-                                                    <li key={d._id} className="hover:text-black cursor-pointer"> {d.name} </li>
+                                                    <li key={d._id} className="hover:text-black cursor-pointer" onClick={() => handleDesignerClick(d.name)}> {d.name} </li>
                                                 ))}
 
                                                 {designers.filter((d) => d.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
@@ -176,7 +177,7 @@ function Navbar({ isFixed = true }) {
                         {categories.slice(0, 3).map((cat) => (
                             <li key={cat._id} className="relative group p-2 px-3 cursor-pointer rounded-2xl hover:underline transition-all duration-300">
                                 {cat.name}
-                                <div className="fixed left-0 top-[75px] hidden group-hover:flex w-screen h-full bg-white text-black shadow-lg p-12 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 z-1" >
+                                <div className="fixed left-0 top-[75px] hidden group-hover:flex w-screen h-[50%] bg-white text-black shadow-lg p-12 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 z-1" >
                                     <div className="flex w-full mx-auto gap-30">
                                         {/* LEFT IMAGE */}
                                         <div className="pl-30">

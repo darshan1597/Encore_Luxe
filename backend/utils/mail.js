@@ -61,7 +61,7 @@ export const sendOrderConfirmationEmail = async (to, order) => {
                     </p>
 
                     <div style="margin-top:30px; text-align:center;">
-                        <a href="${process.env.CLIENT_URL}/track-order/${order.displayOrderNumber}" style="background:#000; color:#fff; text-decoration:none; padding:12px 24px; border-radius:6px;">
+                        <a href="http://localhost:5173/track-order?awb=${order.shiprocket_awb}" style="background:#000; color:#fff; text-decoration:none; padding:12px 24px; border-radius:6px;">
                             Track Your Order
                         </a>
                     </div>

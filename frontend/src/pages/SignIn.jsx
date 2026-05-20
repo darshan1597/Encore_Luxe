@@ -70,7 +70,7 @@ function SignIn() {
                     <label htmlFor="email" className="text-black font-semibold text-lg ml-1" >
                         Email
                     </label>
-                    <input type="email" className="w-full px-4 py-3 text-black bg-gray-100 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-black mt-2" placeholder="Enter Your Email" onChange={(e)=>setEmail(e.target.value)} value={email} required />
+                    <input type="email" name="email" className="w-full px-4 py-3 text-black bg-gray-100 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-black mt-2" placeholder="Enter Your Email" onChange={(e)=>setEmail(e.target.value)} value={email} required />
                 </div>
 
                 <div className="relative w-full flex flex-col">
@@ -94,7 +94,7 @@ function SignIn() {
                 )}
 
                 <div className="w-full max-w-sm mx-auto text-center mt-6">
-                    <button type="button" className="w-full py-3 bg-gray-800 text-white rounded-full hover:bg-white hover:text-black transition font-medium cursor-pointer hover:border hover:border-gray-800 border" onClick={handleSignIn} disabled={loading}>
+                    <button type="button" className="w-full py-3 bg-gray-800 text-white rounded-full hover:bg-white hover:text-black transition font-medium cursor-pointer hover:border hover:border-gray-800 border" onClick={handleSignIn} disabled={loading} >
                         {loading? <ClipLoader size={20} color='currentColor'/>: "Login"}
                     </button>
                     

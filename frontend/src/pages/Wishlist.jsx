@@ -24,12 +24,55 @@ function Wishlist() {
         }
     };
 
+    const handleAddToCart = async (product) => {
+        const newItem = {
+            _id: product._id,
+            name: product.name,
+            sku: product.sku,
+            discountedPrice: product.discountedPrice,
+            mrp: product.mrp,
+            image: `${product.images?.[0]?.name}`,
+            quantity: 1,
+        };
+
+        if (!currentUser) {
+            const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+            const existingItem = existingCart.find((item) => item._id === newItem._id);
+            if (existingItem) {
+                existingItem.quantity += 0;
+            } else {
+                existingCart.push(newItem);
+            }
+
+            localStorage.setItem("cart", JSON.stringify(existingCart));
+            window.dispatchEvent(new Event("cartUpdated"));
+            window.dispatchEvent(new Event("openCart"));
+
+            return
+        } 
+
+        try {
+            await axios.post(`${serverUrl}/api/cart/add-to-cart`, {
+                userId: currentUser?._id,
+                productId: product?._id,
+                quantity: 1,
+            });
+
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            window.dispatchEvent(new Event("openCart"));
+        } catch (error) {
+            alert("Something went wrong!");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <section className="relative flex flex-col justify-between z-10">
                 <Navbar />
             </section>
-            <div className="max-w-7xl mx-auto px-6 py-10">
+            <div className="max-w-7xl mx-auto px-6 py-10 mt-42">
                 <h1 className="text-2xl font-bold mb-8">Your Wishlist</h1>
                 {wishlist.length > 0 ? 
                     (
@@ -38,15 +81,23 @@ function Wishlist() {
                             const primaryImage = p.images?.find(img => img.isPrimary)?.name;
                             const imageUrl = `${serverUrl}/productImages/${primaryImage}`;
                             return (
-                                <div key={p._id} className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer" onClick={() => navigate(`/product/${p._id}`)} >
-                                <img src={imageUrl} alt={p.name} className="w-full h-64 object-cover" />
+                                <div key={p._id} className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer" >
+                                <img src={imageUrl} alt={p.name} className="w-full h-64 object-cover" onClick={() => navigate(`/product/${p._id}`)} />
                                 <div className="p-4">
                                     <h3 className="font-medium text-gray-800 text-sm">{p.name}</h3>
-                                    <p className="text-gray-600 text-sm mt-1">
-                                        ₹{p.discountedPrice}
-                                    </p>
-                                    <button className="flex items-center gap-2 mt-3 px-3 py-1.5 text-sm border rounded hover:bg-black hover:text-white transition cursor-pointer">
-                                    <IoMdCart /> Add to Cart
+                                    {p?.discountedPrice != 0 && 
+                                        <>
+                                            <p className="text-gray-700 font-medium">₹{p?.discountedPrice}</p>
+                                            <p className="text-red-700 font-medium line-through">₹{p?.mrp}</p>
+                                        </>
+                                    }
+                                    {p?.discountedPrice === 0 && 
+                                        <>
+                                            <p className="text-gray-700 font-medium">₹{p.mrp}</p>
+                                        </>
+                                    }
+                                    <button className="flex items-center gap-2 mt-3 px-3 py-1.5 text-sm border rounded hover:bg-black hover:text-white transition cursor-pointer" onClick={() => handleAddToCart(p)}>
+                                        <IoMdCart /> Add to Cart
                                     </button>
                                 </div>
                                 </div>

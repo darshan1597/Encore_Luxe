@@ -66,12 +66,19 @@ const orderSchema = new mongoose.Schema({
     shiprocket_shipment_id: { 
         type: String 
     },
+    shiprocket_awb: { 
+        type: String 
+    },
+    tracking_url: { 
+        type: String 
+    },
+    orderStatus: {
+        type: String,
+        default: "Pending" 
+    },
     shiprocket_status: { 
         type: String,  
         default: "Pending" 
-    },
-    shiprocket_tracking_url: { 
-        type: String 
     },
     createdAt: { 
         type: Date, 

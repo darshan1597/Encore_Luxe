@@ -5,6 +5,7 @@ import { serverUrl } from "../../App";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import Toast from "../components/Toast";
 
 function ViewForms() {
     const [loaded, setLoaded] = useState(false);
@@ -13,17 +14,17 @@ function ViewForms() {
     const [activeFilter, setActiveFilter] = useState("all");
     const [allSellerForms, setAllSellerForms] = useState([]);
     const [loading, setLoading] = useState(false)
+    const [toast, setToast] = useState(null);
 
     const handleApprove = async (sellerProductId) => {
         setLoading(true)
         try {
             const res = await axios.post(`${serverUrl}/api/admin/approve-seller-product/${sellerProductId}`);
-            alert("Product approved and moved to Product DB!");
-            navigate("/admin/admin-panel")
+            setToast({ message: "Product approved and moved to Product DB!", type: "success" })
             setLoading(false)
         } catch (error) {
             console.error(error);
-            alert("Error approving product");
+            setToast({ message: "Error approving product", type: "error" })
             setLoading(false)
         }
     };
@@ -179,6 +180,13 @@ function ViewForms() {
                     ))}
                 </div>
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     )
 }

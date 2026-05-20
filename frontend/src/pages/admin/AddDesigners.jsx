@@ -5,17 +5,28 @@ import AdminNavbar from "../components/AdminNavbar";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import Toast from "../components/Toast";
 
 function AddDesigners() {
     const [name, setName] = useState("");
     const [designers, setDesigners] = useState([]);
-    const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
+    const [toast, setToast] = useState(null);
 
     const fetchDesigners = async () => {
         const res = await axios.get(`${serverUrl}/api/getDesigners/get-designers`);
         setDesigners(res.data);
+    };
+
+    const handleDeleteDesigner = async (designerId) => {
+        try {
+            await axios.delete(`${serverUrl}/api/designers/delete-designer/${designerId}`);
+            await fetchDesigners();
+            setToast({ message: "Designer Deleeted Successfully!", type: "success" })
+        } catch (error) {
+            setToast({ message: "Error Deleting Designer!", type: "error" });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -23,24 +34,22 @@ function AddDesigners() {
         setLoading(true)
         try {
             await axios.post(`${serverUrl}/api/designers/add-designers`, { name });
-            alert("Designer Added Successfully!");
+            setToast({ message: "Designer Added Successfully!", type: "success" });
             setName("");
             fetchDesigners();
             setLoading(false)
         } catch (error) {
-            alert("Error Adding Designer!");
+            setToast({ message: "Error Adding Designer!", type: "error" });
             setLoading(false)
         }
-        
     };
 
     useEffect(() => {
         fetchDesigners();
-        setTimeout(() => setLoaded(true), 150);
     }, []);
 
     return (
-        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${ loaded ? "opacity-100" : "opacity-0" }`} >
+        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white`} >
             <section className="relative flex flex-col justify-between z-10">
                 <AdminNavbar />
             </section>
@@ -64,13 +73,20 @@ function AddDesigners() {
                     {designers.map((d) => (
                         <li key={d._id} className="flex justify-between border-b py-1">
                             {d.name}
-                            <button onClick={() => axios.delete(`${serverUrl}/api/designers/delete-designer/${b._id}`).then(fetchDesigners) } className="text-red-500 cursor-pointer" >
-                                Delete
+                            <button type="button" onClick={() => handleDeleteDesigner(d._id)} className="text-red-500 cursor-pointer" >
+                                {loading? <ClipLoader size={20} color='currentColor'/>: "Delete"}
                             </button>
                         </li>
                     ))}
                 </ul>
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

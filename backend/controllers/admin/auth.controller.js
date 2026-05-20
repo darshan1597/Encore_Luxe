@@ -9,6 +9,12 @@ export const addAdmin = async (req, res) => {
         if(admin){
             return res.status(400).json({message: "Admin Already exist."})
         }
+        if(!fullName){
+            return res.status(400).json({message: "Please Enter Full Name."})
+        }
+        if(!email){
+            return res.status(400).json({message: "Please Enter Email."})
+        }
         if(password.length < 6){
             return res.status(400).json({message: "Password must be atleast 6 characters."})
         }
@@ -46,11 +52,11 @@ export const adminSignIn = async (req, res) => {
             return res.status(400).json({message: "Incorrect password"})
         }
 
-        const token = await genToken(admin._id)
+        const token = await genToken(admin)
         res.cookie("token", token,{
-            secure: false,
+            secure: true,
             sameSite: "lax",
-            maxAge: 7*24*60*60*1000,
+            maxAge: 1*24*60*60*1000,
             httpOnly: true
         })
 

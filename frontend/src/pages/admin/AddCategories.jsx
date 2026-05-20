@@ -6,6 +6,7 @@ import AdminNavbar from "../components/AdminNavbar";
 import { useNavigate } from "react-router-dom";
 import { LuDelete } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
+import Toast from "../components/Toast";
 
 function AddCategories() {
     const [categoryName, setCategoryName] = useState("");
@@ -14,6 +15,7 @@ function AddCategories() {
     const [loaded, setLoaded] = useState(false)
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
+    const [toast, setToast] = useState(null);
 
     const handleBranchCount = (count) => {
         const newBranches = Array.from({ length: count }, () => ({
@@ -65,13 +67,13 @@ function AddCategories() {
 
         try {
             await axios.post(`${serverUrl}/api/categories/add-category`, formattedCategory);
-            alert("Category Added Successfully!");
+            setToast({ message: "Category Added Successfully!", type: "success" });
             setCategoryName("");
             setBranches([]);
             setBranchCount(0);
             setLoading(false)
         } catch (error) {
-            alert("Error Adding Category!");
+            setToast({ message: "Error Adding Category!", type: "error" });
             setLoading(false)
         }
         
@@ -136,6 +138,13 @@ function AddCategories() {
                     </button>
                 </form>
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

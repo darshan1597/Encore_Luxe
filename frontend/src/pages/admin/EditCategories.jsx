@@ -5,12 +5,13 @@ import { MdKeyboardBackspace } from "react-icons/md";
 import AdminNavbar from "../components/AdminNavbar";
 import { useNavigate } from "react-router-dom";
 import { LuDelete } from "react-icons/lu";
+import Toast from "../components/Toast";
 
 function EditCategories() {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [branches, setBranches] = useState([]);
-    const [loaded, setLoaded] = useState(false)
+    const [toast, setToast] = useState(null);
     const navigate = useNavigate()
 
     // Fetch all categories on mount
@@ -92,16 +93,12 @@ function EditCategories() {
         }
 
         await axios.put(`${serverUrl}/api/categories/edit-category/${selectedCategory._id}`, formattedCategory);
-        alert("Category Updated Successfully!");
+        setToast({ message: "Category Updated Successfully!", type: "success" });
         fetchCategories();
     };
 
-    useEffect(() => {
-        setTimeout(() => setLoaded(true), 150);
-    }, []);
-
     return (
-        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${loaded ? "opacity-100" : "opacity-0"}`}>
+        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white`}>
             <section className="relative flex flex-col justify-between z-10">
                 <AdminNavbar />
             </section>
@@ -174,6 +171,13 @@ function EditCategories() {
                 </form>
             )}
             </div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

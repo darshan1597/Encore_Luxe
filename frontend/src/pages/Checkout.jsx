@@ -9,6 +9,7 @@ import axios from "axios";
 import Footer from "./components/Footer";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import Toast from "./components/Toast";
 
 const Checkout = () => {
     const [formData, setFormData] = useState({
@@ -38,17 +39,23 @@ const Checkout = () => {
     const [payment, setPayment] = useState("razorpay");
     const [address, setAddress] = useState("Same as shipping address");
     const [cartItems, setCartItems] = useState([]);
-    const [coupon, setCoupon] = useState("");
     const [discount, setDiscount] = useState(0);
-    const [couponError, setCouponError] = useState("");
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [countdown, setCountdown] = useState(10);
     const [loading, setLoading] = useState(false)
-    const [loaded, setLoaded] = useState(false);
     const [editingAddressId, setEditingAddressId] = useState(null);
     const [showErrorPopup, setShowErrorPopup] = useState("");
+    const [coupon, setCoupon] = useState("");
+    const [toast, setToast] = useState(null);
     const navigate = useNavigate();
     const { userData: currentUser } = useSelector((state) => state.user);
+
+    const subtotal = cartItems.reduce(
+        (sum, item) => sum + ((item?.discountedPrice > 0 ? item.discountedPrice : item?.mrp) * item.quantity),
+        0
+    );
+
+    const total = Math.max(subtotal - discount, 0);
 
     useEffect(() => {
         const fetchSavedAddresses = async () => {
@@ -98,7 +105,7 @@ const Checkout = () => {
                 pin: currentUser.pincode || "",
             });
         }
-    }, [currentUser, address]);
+        }, [currentUser, address]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -118,32 +125,48 @@ const Checkout = () => {
 
     const handleApplyCoupon = async () => {
         if (!coupon.trim()) {
-            setCouponError("Please enter a coupon code");
-            return;
+            setToast({ message: "Please Enter Discount Code.", type: "error" });
         }
 
         try {
-            setCouponError("");
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/coupon/validate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: coupon }),
+            const res = await axios.post(`${serverUrl}/api/applyDiscount/apply-discount`, {
+                code: coupon,
+                subtotal: subtotal
             });
 
-            const data = await res.json();
+            setDiscount(res.data.discountAmount);
 
-            if (res.ok && data.valid) {
-                setDiscount(data.discountAmount || 0);
-                alert("Coupon applied successfully!");
-            } else {
-                setDiscount(0);
-                setCouponError(data.message || "Invalid coupon code");
-            }
+            localStorage.setItem("appliedCoupon", coupon);
+            localStorage.setItem("discountAmount", res.data.discountAmount);
+
+            setToast({ message: "Coupon applied successfully!", type: "success" });
         } catch (error) {
-            console.error(error);
-            setCouponError("Something went wrong. Try again later.");
+            setDiscount(0);
+            localStorage.removeItem("appliedCoupon");
+            localStorage.removeItem("discountAmount");
+            setToast({ message: error.response?.data?.message || "Invalid coupon", type: "error" });
         }
     };
+
+    useEffect(() => {
+        const savedCoupon = localStorage.getItem("appliedCoupon");
+        if (savedCoupon && subtotal > 0) {
+            
+            axios.post(`${serverUrl}/api/applyDiscount/apply-discount`, {
+                code: savedCoupon,
+                subtotal: subtotal
+            })
+            .then((res) => {
+                setDiscount(res.data.discountAmount);
+                localStorage.setItem("discountAmount", res.data.discountAmount);
+            })
+            .catch(() => {
+                setDiscount(0);
+                localStorage.removeItem("appliedCoupon");
+                localStorage.removeItem("discountAmount");
+            });
+        }
+    }, [subtotal]);
 
     const handlePayment = async () => {
 
@@ -159,13 +182,13 @@ const Checkout = () => {
 
         for (let field of requiredFields) {
             if (!formData[field]?.trim()) {
-                alert(`Please fill in your ${field.replace(/([A-Z])/g, " $1").toLowerCase()} before proceeding.`);
+                setToast({ message: `Please fill in your ${field.replace(/([A-Z])/g, " $1").toLowerCase()} before proceeding.`, type: "error" });
                 return;
             }
         }
 
         if (!formData.accept) {
-            alert(`Please aceept our Return Policy before proceeding.`);
+            setToast({ message: "Please aceept our Return Policy before proceeding.", type: "error" });
             return;
         }
 
@@ -178,7 +201,7 @@ const Checkout = () => {
                 items: cartItems.map(item => ({
                     productId: item.productId?._id || item.productId || item._id,
                     name: item.name,
-                    price: item.discountedPrice || item.price,
+                    price: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.mrp,
                     quantity: item.quantity,
                 })),
                 totalAmount: total,
@@ -227,6 +250,9 @@ const Checkout = () => {
                 }
                 localStorage.removeItem("cart");
                 window.dispatchEvent(new Event("cartUpdated"));
+
+                localStorage.removeItem("appliedCoupon");
+                localStorage.removeItem("discountAmount");
                 
                 setShowErrorPopup("")
                 setShowSuccessPopup(true);
@@ -238,7 +264,7 @@ const Checkout = () => {
             // Razorpay handling
             if (!data.success) {
                 setLoading(false);
-                alert(data.message || "Failed to create order, please try again.");
+                setToast({ message: data.message || "Failed to create order, please try again.", type: "error" });
                 return;
             }
 
@@ -263,6 +289,10 @@ const Checkout = () => {
                         if (verifyRes.data.success) {
                             localStorage.removeItem("cart");
                             window.dispatchEvent(new Event("cartUpdated"));
+
+                            localStorage.removeItem("appliedCoupon");
+                            localStorage.removeItem("discountAmount");
+
                             setShowSuccessPopup(true);
                         } else {
                             setShowErrorPopup(verifyRes.data.message || "Product out of stock, refund initiated.")
@@ -293,14 +323,14 @@ const Checkout = () => {
 
     const handleSaveAddress = async () => {
         if (!currentUser?._id) {
-            alert("Please log in to save your address.");
+            setToast({ message: "Please log in to save your address.", type: "error" });
             return;
         }
 
         const { address, apt, city, state, pin, country } = formData;
 
         if (!address || !city || !state || !pin) {
-            alert("Please fill all required address fields before saving.");
+            setToast({ message: "Please fill all required address fields before saving.", type: "error" });
             return;
         }
 
@@ -324,12 +354,12 @@ const Checkout = () => {
             });
 
             if (isDuplicate) {
-                alert("This address already exists in your saved addresses.");
+                setToast({ message: "This address already exists in your saved addresses.", type: "error" });
                 return;
             }
 
             if (savedAddresses.length >= 3) {
-                alert("You can only save up to 3 addresses.");
+                setToast({ message: "You can only save up to 3 addresses.", type: "error" });
                 return;
             }
         }
@@ -346,7 +376,7 @@ const Checkout = () => {
             }
 
             if (res.data.success) {
-                alert(editingAddressId ? "Address updated successfully!" : "Address saved successfully!");
+                setToast({ message: editingAddressId ? "Address updated successfully!" : "Address saved successfully!", type: "success" });
 
                 const refreshed = await axios.get(`${serverUrl}/api/user/get-addresses/${currentUser._id}`);
                 if (refreshed.data.success) {
@@ -363,11 +393,11 @@ const Checkout = () => {
                 });
                 setEditingAddressId(null);
             } else {
-                alert("Failed to save address. Try again.");
+                setToast({ message: "Failed to save address. Try again.", type: "error" });
             }
         } catch (err) {
             console.error("Save address error:", err);
-            alert("Something went wrong while saving address.");
+            setToast({ message: "Something went wrong while saving address.", type: "error" });
         }
     };
 
@@ -392,11 +422,9 @@ const Checkout = () => {
                 if (currentUser) {
                     const res = await axios.get(`${serverUrl}/api/cart/get-cart/${currentUser._id}`);
                     setCartItems(res.data?.cart?.items || []);
-                    console.log(cartItems)
                 } else {
                     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
                     setCartItems(storedCart);
-                    console.log(storedCart)
                 }
             } catch (err) {
                 console.error("Failed to load cart:", err);
@@ -408,18 +436,8 @@ const Checkout = () => {
         return () => window.removeEventListener("cartUpdated", loadCart);
     }, []);
 
-    const subtotal = cartItems.reduce(
-        (sum, item) => sum + ((item?.discountedPrice > 0 ? item.discountedPrice : item?.mrp) * item.quantity),
-        0
-    );
-
-    const total = Math.max(subtotal - discount, 0);
-
-    useEffect(() => {
-        setTimeout(() => setLoaded(true), 150);
-    }, []);
     return (
-        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white ${loaded ? "opacity-100" : "opacity-0"}`}>
+        <div className={`min-h-screen w-full transition-opacity duration-1000 bg-white`}>
             <section className="relative flex flex-col justify-between z-10">
                 <Navbar/>
             </section>
@@ -474,17 +492,17 @@ const Checkout = () => {
                                                                 `${serverUrl}/api/user/delete-address/${currentUser._id}/${addr._id}`
                                                                 );
                                                                 if (res.data.success) {
-                                                                alert("Address deleted successfully!");
-                                                                setSavedAddresses((prev) =>
-                                                                    prev.filter((_, i) => i !== index)
-                                                                );
-                                                                setSelectedAddressIndex(null);
+                                                                    setToast({ message: "Address deleted successfully!", type: "success" });
+                                                                    setSavedAddresses((prev) =>
+                                                                        prev.filter((_, i) => i !== index)
+                                                                    );
+                                                                    setSelectedAddressIndex(null);
                                                                 } else {
-                                                                alert("Failed to delete address.");
+                                                                    setToast({ message: "Failed to delete address.", type: "error" });
                                                                 }
                                                             } catch (err) {
                                                                 console.error("Delete address error:", err);
-                                                                alert("Error deleting address.");
+                                                                setToast({ message: "Error deleting address.", type: "error" });
                                                             }
                                                         }
                                                     }}
@@ -623,18 +641,25 @@ const Checkout = () => {
                             <input type="checkbox" name="accept" id="accept" className="mr-2 accent-black" checked={formData.accept} onChange={(e) => setFormData({ ...formData, accept: e.target.checked })} required />
                             <label htmlFor="accept">By proceeding with payment, you accept our <span className="underline cursor-pointer" onClick={() => window.open("/terms-and-condition", "_blank")}>Return Policy.</span></label>
                         </div>
-
-                        <button className="w-full bg-black text-white p-3 rounded-md cursor-pointer hover:bg-gray-900" >
-                            {/* onClick={handlePayment} */}  {/* to be added inside button */}
-                            
-                            {payment === "razorpay" ? (
-                                <>
-                                Pay now <span className="font-semibold">₹{subtotal.toLocaleString()}</span>
-                                </>
-                            ) : (
-                                "Place order"
-                            )}
-                        </button>
+                        {cartItems.length === 0 ?
+                            (
+                                <button className="w-full bg-black text-white p-3 rounded-md cursor-pointer hover:bg-gray-900" onClick={() => navigate(`/#explore`)}>
+                                    Continue Shopping
+                                </button>
+                            ):(
+                                <button className="w-full bg-black text-white p-3 rounded-md cursor-pointer hover:bg-gray-900" onClick={handlePayment}>
+                                    <>
+                                        {payment === "razorpay" ? (
+                                            <>
+                                            Pay now <span className="font-semibold">₹{total.toLocaleString()}</span>
+                                            </>
+                                        ) : (
+                                            "Place order"
+                                        )}
+                                    </>
+                                </button>
+                            )
+                        }
                     </div>
 
                     {/* Right Side: Fixed Summary */}
@@ -643,12 +668,17 @@ const Checkout = () => {
                             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
                             {cartItems.length === 0 ? 
                                 (
-                                    <p className="text-gray-500">Your cart is empty.</p>
+                                    <>
+                                        <p className="text-gray-500">Your cart is empty.</p>
+                                        <button className="mt-3 text-center text-white px-2 py-2 rounded-lg cursor-pointer bg-gray-700" onClick={() => navigate(`/#explore`)}>
+                                            Continue Shopping
+                                        </button>
+                                    </>
                                 ):(
                                     cartItems.map((item) => (
                                         <>
                                             <div className="flex gap-4 mb-4">
-                                                <img src={`${serverUrl}/productImages/${item.image}`} alt="Product" className="w-16 h-full object-cover bg-white cursor-pointer" />
+                                                <img src={`${serverUrl}/productImages/${item.image}`} alt="Product" className="w-16 h-[100px] object-cover bg-white cursor-pointer" onClick={() => navigate(`/product/${item?._id}`)} />
                                                 <div>
                                                     <p className="font-semibold capitalize">{item?.name}</p>
                                                     {item?.discountedPrice != 0 &&
@@ -660,27 +690,34 @@ const Checkout = () => {
                                                     <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
                                                 </div>
                                             </div>
-                                            
                                         </>
                                     ))
                                 )
                             }
-                            <div className="flex gap-2">
-                                <input type="text" placeholder="Enter Coupon code" value={coupon} onChange={(e) => setCoupon(e.target.value)} className="w-full border bg-white rounded-sm p-2 mb-4" />
-                                <button className="bg-black p-2 mb-4 rounded-sm text-white px-5 font-bold cursor-pointer hover:bg-gray-800" onClick={handleApplyCoupon}>Apply</button>
-                            </div>
-                            <div className="flex justify-between mb-2">
-                                <span>Subtotal</span>
-                                <span>₹{subtotal.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between font-semibold mb-4">
-                                <span>Total</span>
-                                <span>₹{total.toLocaleString()}</span>
-                            </div>
+
+                            {cartItems.length != 0 && 
+                                <>
+                                    <div className="flex gap-2">
+                                        <input type="text" placeholder="Enter Coupon code" value={coupon} onChange={(e) => setCoupon(e.target.value)} className="w-full border bg-white rounded-sm p-2 mb-4" />
+                                        <button className="bg-black p-2 mb-4 rounded-sm text-white px-5 font-bold cursor-pointer hover:bg-gray-800" onClick={handleApplyCoupon}>Apply</button>
+                                    </div>
+                                    <div className="flex justify-between mb-2">
+                                        <span>Subtotal</span>
+                                        <span>₹{subtotal.toLocaleString()}</span>
+                                    </div>
+                                    {discount > 0 && (
+                                        <div className="flex justify-between mb-2">
+                                            <span>Discount</span>
+                                            <span className="text-green-500">-₹{discount.toLocaleString()}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between font-semibold mb-2">
+                                        <span>Total</span>
+                                        <span>₹{total.toLocaleString()}</span>
+                                    </div>
+                                </>
+                            }
                         </div>
-                        {couponError && (
-                            <p className="text-red-500 text-sm mb-2">{couponError}</p>
-                        )}
                     </div>
                 </div>
             </div>
@@ -720,6 +757,14 @@ const Checkout = () => {
                         <p className="text-gray-700 font-medium">Processing your order, Please Wait...</p>
                     </div>
                 </div>
+            )}
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
             )}
             <Footer />
         </div>
