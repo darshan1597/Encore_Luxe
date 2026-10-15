@@ -170,12 +170,6 @@ npm run dev
 ### Checkout Page
 <img src="./screenshots/5.png" width="800"/>
 
-### Sell With Us Page
-<p align="center">
-  <img src="./screenshots/6.png" width="45%">
-  <img src="./screenshots/6(1).png" width="45%">
-</p>
-
 ### Admin Panel
 <img src="./screenshots/7.png" width="800"/>
 
@@ -188,13 +182,7 @@ npm run dev
 ### Add Discout Codes Page
 <img src="./screenshots/10.png" width="800"/>
 
-### View Seller Forms
-<img src="./screenshots/11.png" width="800"/>
 
 ## Author
 
-Sakeena Bi
-
-LinkedIn: Your LinkedIn
-
-GitHub: Your GitHub
+Darshan
